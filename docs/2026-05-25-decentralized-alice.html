@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Decentralized Alice &mdash; scratchpad</title>
+<style>
+  :root {
+    --fg: #1a1a1a;
+    --muted: #6b6b6b;
+    --accent: #2a5db0;
+    --bg: #fafafa;
+    --card: #fff;
+    --border: #e5e5e5;
+    --sovereign: #2d8049;
+    --warn: #c4761f;
+    --bad: #c0392b;
+    --code-bg: #f4f4f6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --fg: #e8e8e8;
+      --muted: #999;
+      --accent: #79a7ff;
+      --bg: #16181c;
+      --card: #1f2228;
+      --border: #2a2e36;
+      --sovereign: #7ee787;
+      --warn: #ffa657;
+      --bad: #ff7b72;
+      --code-bg: #1a1d22;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    max-width: 760px; margin: 0 auto; padding: 3rem 1.5rem 4rem;
+    color: var(--fg); background: var(--bg); line-height: 1.6;
+  }
+  h1 { font-size: 1.8rem; letter-spacing: -.01em; margin: 0 0 .25rem; }
+  h2 { font-size: 1.25rem; margin: 2.5rem 0 .75rem; padding-bottom: .35rem; border-bottom: 1px solid var(--border); letter-spacing: -.01em; }
+  h3 { font-size: 1rem; margin: 1.5rem 0 .5rem; color: var(--accent); }
+  .date { color: var(--muted); margin-bottom: 2rem; font-variant-numeric: tabular-nums; }
+  p { margin: .6rem 0; }
+  small.subtitle { color: var(--muted); font-size: .95rem; }
+  a { color: var(--accent); }
+  code, pre, .mono { font-family: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, Consolas, monospace; }
+  code { background: var(--code-bg); border: 1px solid var(--border); padding: .1rem .35rem; border-radius: 4px; font-size: .88em; }
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 6px;
+    padding: 1rem; overflow-x: auto; font-size: .82rem; line-height: 1.5;
+  }
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+    padding: 1rem 1.25rem; margin: 1rem 0;
+  }
+  .pill {
+    display: inline-block; font-family: ui-monospace, monospace; font-size: .72rem;
+    padding: 2px 8px; border-radius: 999px; border: 1px solid var(--border);
+    color: var(--muted); margin-right: 4px;
+  }
+  .pill.good { color: var(--sovereign); border-color: var(--sovereign); }
+  .pill.warn { color: var(--warn); border-color: var(--warn); }
+  .pill.bad  { color: var(--bad); border-color: var(--bad); }
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: .92rem; }
+  th, td { border: 1px solid var(--border); padding: .5rem .65rem; text-align: left; vertical-align: top; }
+  th { background: var(--code-bg); font-weight: 600; }
+  .grid {
+    display: grid; gap: .75rem; grid-template-columns: repeat(3, 1fr);
+    margin: 1rem 0;
+  }
+  .grid .card { margin: 0; padding: .85rem 1rem; }
+  .grid h4 { margin: 0 0 .35rem; font-size: .9rem; color: var(--sovereign); }
+  .grid p { margin: 0; font-size: .85rem; color: var(--muted); }
+  .ascii {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 6px;
+    padding: 1rem; font-family: ui-monospace, monospace; font-size: .78rem;
+    white-space: pre; overflow-x: auto; line-height: 1.45; color: var(--fg);
+  }
+  .callout {
+    border-left: 3px solid var(--sovereign);
+    background: var(--card); padding: .75rem 1rem; border-radius: 0 6px 6px 0;
+    margin: 1rem 0;
+  }
+  .callout.warn { border-left-color: var(--warn); }
+  .nav { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+  .nav a { color: var(--muted); text-decoration: none; }
+  .nav a:hover { color: var(--accent); }
+  @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<h1>Decentralized Alice</h1>
+<div class="date">2026-05-25</div>
+<p><small class="subtitle">A sovereign Canton wallet hosted on multiple participants &mdash; Alice keeps the keys, the network keeps the uptime.</small></p>
+
+<h2>The thesis in one sentence</h2>
+<div class="card">
+Alice holds her own namespace root key in her console wallet, but her on-ledger Party is hosted on a quorum of independent participant nodes (Bitsafe, DA, PixelPlex). Any 2-of-3 hosts can confirm and execute her transactions, but no host &mdash; alone or together &mdash; can move her assets, evict her, or rotate her keys without an explicit signature from Alice.
+</div>
+
+<h2>Why this is hard on most chains, and possible on Canton</h2>
+<p>Most blockchains conflate three concerns into a single private key: <em>identity</em>, <em>authorization</em>, and <em>availability</em>. Canton splits them into three orthogonal topology mappings:</p>
+
+<table>
+  <tr><th>Mapping</th><th>What it answers</th><th>Concept</th></tr>
+  <tr>
+    <td><code>NamespaceDelegation</code></td>
+    <td>Who can change Alice's identity / topology?</td>
+    <td>Identity, sovereignty &mdash; the root of trust.</td>
+  </tr>
+  <tr>
+    <td><code>PartyToKeyMapping</code></td>
+    <td>Which key signs each ledger transaction for Alice?</td>
+    <td>Per-transaction authorization &mdash; the hot signing key.</td>
+  </tr>
+  <tr>
+    <td><code>PartyToParticipant</code></td>
+    <td>Which nodes host Alice, with what permission, with what quorum?</td>
+    <td>Availability, redundancy &mdash; the hosting set.</td>
+  </tr>
+</table>
+
+<p>Because these are three independent records, you can mix-and-match the trust on each axis. "Self-sovereign identity + decentralized hosting + hot signing key" is just one valid configuration of the three knobs.</p>
+
+<h2>Two keys, two layers, two purposes</h2>
+
+<div class="grid">
+  <div class="card">
+    <h4>Namespace root key</h4>
+    <p>Cold. Lives in Alice's console wallet (ideally hardware-backed). Signs <em>only</em> topology changes &mdash; onboarding, key rotation, swapping hosts. Defines Alice's namespace as <code>Alice::&lt;root-fp&gt;</code>. Never signs a transfer.</p>
+  </div>
+  <div class="card">
+    <h4>External signing key</h4>
+    <p>Hot. Also in Alice's wallet. Signs the hash of every prepared ledger transaction. Its authority exists only because the root key published a <code>PartyToKeyMapping</code> binding it to Alice's Party. Rotatable cheaply.</p>
+  </div>
+  <div class="card">
+    <h4>Host node keys</h4>
+    <p>Held by Bitsafe / DA / PixelPlex. Sign <em>their own</em> confirmation messages and topology co-signatures. Do <strong>not</strong> have authority to sign on Alice's behalf. Validators + submitters, not custodians.</p>
+  </div>
+</div>
+
+<h2>The cryptographic chain (per transaction)</h2>
+
+<div class="ascii">root key  ──signs once──▶  PartyToKeyMapping { party: Alice, keys: [ext_sig_key] }
+                                          │
+                                          ▼
+ext_sig_key  ──signs each tx hash──▶  TransferCommand request
+                                          │
+                                          ▼
+              Bitsafe / DA / PixelPlex  (verify ext_sig_key against PartyToKeyMapping,
+                                         walk NamespaceDelegation, check root fingerprint)
+                                          │
+                                          ▼
+              2-of-3 confirmations ──▶  Mediator ──▶  Sequencer ──▶  ledger updated</div>
+
+<h2>Onboarding &mdash; what the root key signs (once)</h2>
+
+<p>The console wallet builds three topology transactions, Alice's root key signs them in a combined multi-hash, hosts co-sign the <code>PartyToParticipant</code>, and the bundle is submitted:</p>
+
+<table>
+  <tr><th>Mapping</th><th>What it asserts</th><th>Signed by</th></tr>
+  <tr>
+    <td><code>NamespaceDelegation</code></td>
+    <td>"This root key owns the namespace <code>Alice::&lt;fp&gt;</code>."</td>
+    <td>Root key (Alice)</td>
+  </tr>
+  <tr>
+    <td><code>PartyToKeyMapping</code></td>
+    <td>"This signing key represents Alice for ledger transactions."</td>
+    <td>Root key (Alice)</td>
+  </tr>
+  <tr>
+    <td><code>PartyToParticipant</code></td>
+    <td>"Bitsafe, DA, PixelPlex host Alice with <code>Confirmation</code> permission, threshold 2-of-3."</td>
+    <td>Root key (Alice) + each host's key</td>
+  </tr>
+</table>
+
+<p>On-ledger, Alice also exercises <code>ExternalPartySetupProposal_Accept</code>, producing a <code>ValidatorRight</code> and a <code>TransferPreapproval</code> (inbound receipts + automated holding-fee renewal). After this, the root key goes cold.</p>
+
+<h2>Per-transfer flow &mdash; "Alice sends 10 Amulets to Bob"</h2>
+
+<div class="ascii">[1] Wallet prepares command on Bitsafe → returns serialized prepared tx + hash
+        ExternalPartyAmuletRules_CreateTransferCommand(sender=Alice, receiver=Bob, amount=10)
+
+[2] Wallet independently recomputes the hash and verifies it matches
+        (trust-no-single-host hygiene)
+
+[3] Alice signs the hash locally with her external signing key
+        (root key untouched)
+
+[4] Wallet submits (prepared_tx + signature) to Bitsafe → broadcast to DA + PixelPlex
+        Each host verifies signature against Alice's PartyToKeyMapping in topology
+
+[5] 2-of-3 confirmations reach the Mediator → Sequencer timestamps
+        On-ledger result: a TransferCommand contract (Alice's signed authorization)
+
+[6] A delegate exercises TransferCommand_Send
+        Selects fresh input Amulets, computes fees, creates Bob's output
+        Re-confirmed by Alice's 2-of-3 quorum
+
+[7] Final state: Alice -10 -fees, Bob +10, TransferCommand archived</div>
+
+<div class="callout">
+The <code>TransferCommand</code> contract created in step 5 is the "delegation contract" that's been talked about in the abstract: a concrete, ledger-visible, single-shot authorization that Alice externally signed and a delegate can execute. It decouples <em>"Alice's commitment to send X to Y"</em> from <em>"selecting which UTXOs and fees"</em> &mdash; useful because Alice doesn't have fresh ledger state.
+</div>
+
+<h2>What's delegated to the hosts (and what isn't)</h2>
+
+<table>
+  <tr><th>Operation</th><th>Requires Alice's signature?</th><th>Why</th></tr>
+  <tr><td>Outbound transfer</td><td>Yes &mdash; external signing key per tx</td><td>Value-moving; Alice's explicit intent.</td></tr>
+  <tr><td>Holding-fee renewal</td><td>No</td><td><code>TransferPreapproval_Renew</code> burns input amulets automatically; controller is the host, not Alice.</td></tr>
+  <tr><td>Holdings merge</td><td>No</td><td><code>MergeDelegation_Merge</code> consolidates fragmented holdings; gas optimization.</td></tr>
+  <tr><td>Inbound transfer (someone pays Alice)</td><td>No</td><td><code>TransferPreapproval_Send</code> lets the sender authorize.</td></tr>
+  <tr><td>Rotate signing key</td><td>Yes &mdash; root key</td><td>Topology change; publishes new <code>PartyToKeyMapping</code>.</td></tr>
+  <tr><td>Add/remove a host</td><td>Yes &mdash; root key + new host's key</td><td>Topology change to <code>PartyToParticipant</code>.</td></tr>
+  <tr><td>Migrate to entirely new hosts</td><td>Yes &mdash; root key</td><td>Alice cannot be evicted; she can always leave.</td></tr>
+</table>
+
+<h2>Loss and rotation semantics</h2>
+
+<table>
+  <tr><th>Scenario</th><th>Outcome</th><th>Recovery</th></tr>
+  <tr>
+    <td>External signing key stolen</td>
+    <td><span class="pill warn">recoverable</span></td>
+    <td>Root key publishes a new <code>PartyToKeyMapping</code> replacing the compromised key. Old signatures fail verification.</td>
+  </tr>
+  <tr>
+    <td>External signing key lost</td>
+    <td><span class="pill warn">recoverable</span></td>
+    <td>Same &mdash; root mints a new mapping for a fresh key.</td>
+  </tr>
+  <tr>
+    <td>One host offline</td>
+    <td><span class="pill good">no impact</span></td>
+    <td>2-of-3 quorum still reachable.</td>
+  </tr>
+  <tr>
+    <td>Two hosts offline</td>
+    <td><span class="pill warn">transfers halt</span></td>
+    <td>Alice uses root key to publish a new <code>PartyToParticipant</code> with replacement hosts.</td>
+  </tr>
+  <tr>
+    <td>Root key stolen</td>
+    <td><span class="pill bad">catastrophic</span></td>
+    <td>None &mdash; the root key <em>is</em> the identity. Thief can rotate everything. Cold storage is non-negotiable.</td>
+  </tr>
+  <tr>
+    <td>Root key lost</td>
+    <td><span class="pill bad">bricked</span></td>
+    <td>Party frozen in current topology. Outbound transfers work until signing key needs rotation; then unusable.</td>
+  </tr>
+</table>
+
+<h2>Properties achieved</h2>
+
+<div class="grid">
+  <div class="card">
+    <h4>Sovereignty</h4>
+    <p>Only Alice's root key can authorize identity, key, or hosting changes. No host or quorum can evict her or impersonate her.</p>
+  </div>
+  <div class="card">
+    <h4>Redundancy</h4>
+    <p>2-of-3 quorum tolerates one host failure with zero impact. Two failures freeze transfers but never destroy state &mdash; Alice migrates with her root key.</p>
+  </div>
+  <div class="card">
+    <h4>Operational ergonomics</h4>
+    <p>Routine work (fee renewal, holding merges, inbound payments) runs without Alice's signature. Each automation is gated by an on-ledger contract she authorized.</p>
+  </div>
+  <div class="card">
+    <h4>Privacy</h4>
+    <p>Hosts see only the sub-transaction views they need to validate. The dApp never sees Alice's keys; the gateway routes signing requests to whatever custody Alice picked.</p>
+  </div>
+  <div class="card">
+    <h4>Key hygiene</h4>
+    <p>Root and signing keys are <em>separate</em> mappings. Root stays cold. Signing key is hot and rotatable. Compromise of the hot key is not a catastrophic event.</p>
+  </div>
+  <div class="card">
+    <h4>Trust-minimized hosting</h4>
+    <p>Hosts hold <code>Confirmation</code> (not <code>Submission</code>) permission. They <em>cannot</em> submit on Alice's behalf without her per-transaction signature. The 2-of-3 is a quorum of <em>witnesses</em>, not custodians.</p>
+  </div>
+</div>
+
+<h2>Where the tooling stands today</h2>
+
+<p>The Canton + Splice server side is fully wired: <code>generateExternalPartyTopology</code> builds the three mappings; <code>allocateExternalParty</code> ingests them; <code>TransferPreapproval</code> / <code>TransferCommand</code> / <code>ValidatorRight</code> / <code>MergeDelegation</code> compose the DAML-level delegation semantics. The DSO itself is built on the same <code>DecentralizedNamespaceDefinition</code> primitive that could (separately) be used to share namespace ownership.</p>
+
+<p>The client side &mdash; <a href="https://github.com/hyperledger-labs/splice-wallet-kernel">splice-wallet-kernel</a> &mdash; implements the corresponding TypeScript Wallet SDK, dApp SDK, and Wallet Gateway. It exposes <code>PartyMode.EXTERNAL</code> with pluggable signing drivers (internal, Fireblocks, Blockdaemon, participant). The multi-hosting workflow is documented and demonstrated in <code>examples/scripts/03-parties.ts</code>.</p>
+
+<div class="callout warn">
+<strong>Two gaps relative to the design above:</strong>
+<ul>
+  <li>The browser-extension Wallet Gateway (<code>wallet-gateway-extension</code>) &mdash; the cleanest realization of "console wallet, keys never leave the browser" &mdash; is currently marked <code>NOT IMPLEMENTED YET</code>. The available <code>wallet-gateway-remote</code> is a server Alice must trust.</li>
+  <li>The SDK's <code>createKeyPair</code> generates one Ed25519 keypair and reuses it for <em>both</em> <code>NamespaceDelegation</code> and <code>PartyToKeyMapping</code>. The primitives support splitting them, but ergonomic helpers for "cold root + hot rotatable signer" are still DIY.</li>
+</ul>
+</div>
+
+<h2>TL;DR</h2>
+
+<div class="card">
+Canton's three-mapping topology lets you independently choose <em>who owns the identity</em>, <em>which key signs each transaction</em>, and <em>which nodes host the data</em>. Decentralized Alice picks: Alice owns identity (cold root key), Alice signs every tx (hot external key), three independent hosts run the infrastructure with 2-of-3 confirmation. The result is a wallet that is <strong>self-sovereign, redundant, hot-rotatable, and operationally lazy</strong> &mdash; without needing a custodian or a multisig at any layer.
+</div>
+
+<div class="nav">
+  <a href="../index.html">&larr; back to index</a>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Onboarding Decentralized Alice &mdash; scratchpad</title>
+<style>
+  :root {
+    --fg: #1a1a1a;
+    --muted: #6b6b6b;
+    --accent: #2a5db0;
+    --bg: #fafafa;
+    --card: #fff;
+    --border: #e5e5e5;
+    --sovereign: #2d8049;
+    --host: #2a5db0;
+    --transport: #c4761f;
+    --warn: #c4761f;
+    --bad: #c0392b;
+    --code-bg: #f4f4f6;
+    --diagram-bg: #fbfbfc;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --fg: #e8e8e8;
+      --muted: #999;
+      --accent: #79a7ff;
+      --bg: #16181c;
+      --card: #1f2228;
+      --border: #2a2e36;
+      --sovereign: #7ee787;
+      --host: #79c0ff;
+      --transport: #ffa657;
+      --warn: #ffa657;
+      --bad: #ff7b72;
+      --code-bg: #1a1d22;
+      --diagram-bg: #1a1d22;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    max-width: 920px; margin: 0 auto; padding: 3rem 1.5rem 4rem;
+    color: var(--fg); background: var(--bg); line-height: 1.6;
+  }
+  h1 { font-size: 1.8rem; letter-spacing: -.01em; margin: 0 0 .25rem; }
+  h2 { font-size: 1.3rem; margin: 2.5rem 0 .75rem; padding-bottom: .35rem; border-bottom: 1px solid var(--border); letter-spacing: -.01em; }
+  h3 { font-size: 1rem; margin: 1.5rem 0 .5rem; color: var(--accent); }
+  h4 { font-size: .82rem; margin: 1rem 0 .35rem; color: var(--accent); text-transform: uppercase; letter-spacing: .05em; }
+  .date { color: var(--muted); margin-bottom: 2rem; font-variant-numeric: tabular-nums; }
+  p { margin: .6rem 0; }
+  small.subtitle { color: var(--muted); font-size: .95rem; }
+  a { color: var(--accent); }
+  code, .mono { font-family: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, Consolas, monospace; }
+  code { background: var(--code-bg); border: 1px solid var(--border); padding: .1rem .35rem; border-radius: 4px; font-size: .88em; }
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 6px;
+    padding: 1rem; overflow-x: auto; font-size: .82rem; line-height: 1.5;
+    font-family: ui-monospace, monospace;
+  }
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+    padding: 1rem 1.25rem; margin: 1rem 0;
+  }
+  .pill {
+    display: inline-block; font-family: ui-monospace, monospace; font-size: .7rem;
+    padding: 2px 8px; border-radius: 999px; border: 1px solid var(--border);
+    color: var(--muted); margin-right: 4px;
+  }
+  .pill.good { color: var(--sovereign); border-color: var(--sovereign); }
+  .pill.info { color: var(--accent); border-color: var(--accent); }
+  .pill.warn { color: var(--warn); border-color: var(--warn); }
+  .pill.bad  { color: var(--bad); border-color: var(--bad); }
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: .9rem; }
+  th, td { border: 1px solid var(--border); padding: .5rem .65rem; text-align: left; vertical-align: top; }
+  th { background: var(--code-bg); font-weight: 600; }
+  .option {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 1.4rem 1.6rem; margin: 1.75rem 0;
+  }
+  .option-header {
+    display: flex; align-items: baseline; gap: .75rem;
+    border-bottom: 1px solid var(--border); padding-bottom: .75rem; margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+  .option-letter { font-family: ui-monospace, monospace; font-size: 2rem; font-weight: 700; color: var(--sovereign); line-height: 1; }
+  .option-title { font-size: 1.15rem; font-weight: 600; }
+  .option-tag { color: var(--muted); font-size: .82rem; margin-left: auto; }
+  .diagram-wrap {
+    background: var(--diagram-bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 1.25rem; margin: 1rem 0; display: flex; justify-content: center;
+  }
+  .diagram-wrap svg { max-width: 100%; height: auto; font-family: ui-monospace, monospace; }
+  /* SVG styling via CSS classes — references parent CSS vars */
+  .diagram-wrap svg .box-fill { fill: var(--card); }
+  .diagram-wrap svg .box-sovereign { stroke: var(--sovereign); stroke-width: 2; }
+  .diagram-wrap svg .box-host { stroke: var(--host); stroke-width: 1.5; }
+  .diagram-wrap svg .box-coord { stroke: var(--sovereign); stroke-width: 2; }
+  .diagram-wrap svg .box-gateway { stroke: var(--transport); stroke-width: 2; }
+  .diagram-wrap svg .text-sovereign { fill: var(--sovereign); }
+  .diagram-wrap svg .text-host { fill: var(--host); }
+  .diagram-wrap svg .text-gateway { fill: var(--transport); }
+  .diagram-wrap svg .text-ink { fill: var(--fg); }
+  .diagram-wrap svg .text-muted { fill: var(--muted); }
+  .diagram-wrap svg .line-sovereign { stroke: var(--sovereign); fill: none; }
+  .diagram-wrap svg .line-host { stroke: var(--host); fill: none; }
+  .diagram-wrap svg .line-transport { stroke: var(--transport); fill: none; }
+  .diagram-wrap svg .arr-sovereign { fill: var(--sovereign); }
+  .diagram-wrap svg .arr-host { fill: var(--host); }
+  .diagram-wrap svg .arr-transport { fill: var(--transport); }
+  .legend { font-size: .75rem; color: var(--muted); display: flex; gap: 1.25rem; justify-content: center; margin-top: .35rem; flex-wrap: wrap; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .swatch { display: inline-block; width: 14px; height: 4px; border-radius: 2px; }
+  .swatch.sovereign { background: var(--sovereign); }
+  .swatch.host { background: var(--host); }
+  .swatch.transport { background: var(--transport); }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin: 1rem 0; }
+  .col { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: .75rem 1rem; }
+  .col h4 { margin-top: 0; }
+  .col ul { padding-left: 1.1rem; margin: .3rem 0; }
+  .col li { margin: .2rem 0; font-size: .88rem; }
+  .col.pros h4 { color: var(--sovereign); }
+  .col.cons h4 { color: var(--warn); }
+  .callout {
+    border-left: 3px solid var(--sovereign);
+    background: var(--card); padding: .75rem 1rem; border-radius: 0 6px 6px 0;
+    margin: 1rem 0;
+  }
+  .callout.warn { border-left-color: var(--warn); }
+  .nav { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+  .nav a { color: var(--muted); text-decoration: none; }
+  .nav a:hover { color: var(--accent); }
+  @media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } .option-tag { margin-left: 0; } }
+</style>
+</head>
+<body>
+
+<h1>Onboarding Decentralized Alice</h1>
+<div class="date">2026-05-25</div>
+<p><small class="subtitle">Three candidate flows for extending DPM (dec-party-onboarding) to support user-initiated multi-host party onboarding.</small></p>
+
+<h2>The problem in one paragraph</h2>
+<div class="card">
+DPM today is a <strong>node-operator-to-node-operator</strong> choreographer: three operators each run a DPM, exchange a Noise PSK out-of-band, and jointly bootstrap a shared <code>DecentralizedNamespaceDefinition</code>. Decentralized Alice is shaped differently &mdash; she's an <strong>end user</strong> with a console wallet, holding her own single-owner root key, who wants three independent operators (Bitsafe, DA, PixelPlex) to host her party under <code>Confirmation</code> permission with a 2-of-3 threshold. There is no shared namespace, no PSK between Alice and the hosts, and no expectation that Alice runs anything node-shaped. When she clicks <em>"onboard me as a decentralized party,"</em> what runs the workflow?
+</div>
+
+<h2>How DPM coordinates today</h2>
+
+<div class="diagram-wrap">
+<svg viewBox="0 0 720 280" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrTodayT" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path class="arr-transport" d="M0,0 L10,5 L0,10 z"/>
+    </marker>
+  </defs>
+  <rect class="box-fill box-coord" x="260" y="40" width="200" height="70" rx="6"/>
+  <text x="360" y="65" text-anchor="middle" class="text-sovereign" font-size="11" font-weight="600">DPM @ Bitsafe (coord)</text>
+  <text x="360" y="85" text-anchor="middle" class="text-ink" font-size="11">operator clicks</text>
+  <text x="360" y="100" text-anchor="middle" class="text-ink" font-size="11">"Create Party"</text>
+
+  <rect class="box-fill box-host" x="40" y="170" width="180" height="70" rx="6"/>
+  <text x="130" y="195" text-anchor="middle" class="text-host" font-size="11" font-weight="600">DPM @ DA (peer)</text>
+  <text x="130" y="215" text-anchor="middle" class="text-ink" font-size="11">operator accepts</text>
+  <text x="130" y="230" text-anchor="middle" class="text-ink" font-size="11">invitation</text>
+
+  <rect class="box-fill box-host" x="500" y="170" width="180" height="70" rx="6"/>
+  <text x="590" y="195" text-anchor="middle" class="text-host" font-size="11" font-weight="600">DPM @ PixelPlex (peer)</text>
+  <text x="590" y="215" text-anchor="middle" class="text-ink" font-size="11">operator accepts</text>
+  <text x="590" y="230" text-anchor="middle" class="text-ink" font-size="11">invitation</text>
+
+  <line x1="290" y1="110" x2="170" y2="170" class="line-transport" stroke-width="1.5" marker-end="url(#arrTodayT)"/>
+  <line x1="430" y1="110" x2="550" y2="170" class="line-transport" stroke-width="1.5" marker-end="url(#arrTodayT)"/>
+  <line x1="220" y1="205" x2="500" y2="205" class="line-transport" stroke-width="1" stroke-dasharray="3,3"/>
+
+  <text x="225" y="148" class="text-gateway" font-size="10">Noise + PSK</text>
+  <text x="475" y="148" class="text-gateway" font-size="10">Noise + PSK</text>
+  <text x="360" y="200" text-anchor="middle" class="text-muted" font-size="10">(peer ↔ peer also)</text>
+
+  <text x="360" y="265" text-anchor="middle" class="text-muted" font-size="11">All three are operators of nodes. PSK shared out-of-band before any of this starts.</text>
+</svg>
+</div>
+<div class="legend">
+  <span><span class="swatch sovereign"></span>coordinator</span>
+  <span><span class="swatch host"></span>peer</span>
+  <span><span class="swatch transport"></span>Noise transport</span>
+</div>
+
+<p>Steps run on a state machine: <code>WaitingForPeers → GenerateKeys → CreateProposals → SignDns → SubmitDns → SignP2p → SubmitFinal</code>. Each peer generates its own keys, the coordinator computes the DNS hash, everyone signs, the coordinator submits.</p>
+
+<h2>What changes for Alice</h2>
+
+<table>
+  <tr><th>Component</th><th>Today (DPM bootstrap)</th><th>For Alice</th></tr>
+  <tr><td>Identity setup</td><td>DPM generates keys via <code>VaultManagerService</code></td><td>Alice's wallet generates keys client-side; DPMs never see private keys</td></tr>
+  <tr><td>Namespace</td><td><code>DecentralizedNamespaceDefinition</code> (multi-owner)</td><td><code>NamespaceDelegation</code> (Alice, single owner)</td></tr>
+  <tr><td>Topology signing</td><td>Each DPM signs DNS + P2P with its own namespace key</td><td>Alice signs NS + P2K with root key; each DPM only co-signs its row of P2P</td></tr>
+  <tr><td>Coordinator</td><td>Always a DPM</td><td>Alice, one DPM on her behalf, or a Wallet Gateway</td></tr>
+  <tr><td>Inter-actor channel</td><td>Noise NN_PSK2 (pre-shared)</td><td>No PSK between Alice and hosts &mdash; needs a different authn primitive</td></tr>
+  <tr><td>Trust establishment</td><td>Operators exchange PSKs out-of-band</td><td>Open question &mdash; payment? KYC? permissionless?</td></tr>
+</table>
+
+<h2>Three coordinator designs</h2>
+
+<!-- =================== OPTION A =================== -->
+<div class="option">
+  <div class="option-header">
+    <div class="option-letter">A</div>
+    <div class="option-title">Alice's wallet is the coordinator</div>
+    <div class="option-tag">most sovereign &middot; most client logic</div>
+  </div>
+
+  <div class="diagram-wrap">
+  <svg viewBox="0 0 760 360" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="arrAS" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+        <path class="arr-sovereign" d="M0,0 L10,5 L0,10 z"/>
+      </marker>
+    </defs>
+    <rect class="box-fill box-sovereign" x="270" y="20" width="220" height="100" rx="8"/>
+    <text x="380" y="44" text-anchor="middle" class="text-sovereign" font-size="13" font-weight="700">Alice's console wallet</text>
+    <text x="380" y="64" text-anchor="middle" class="text-ink" font-size="10">• holds K_root + K_sign</text>
+    <text x="380" y="80" text-anchor="middle" class="text-ink" font-size="10">• builds NS + P2K + P2P proposals</text>
+    <text x="380" y="96" text-anchor="middle" class="text-ink" font-size="10">• signs multi-hash with K_root</text>
+    <text x="380" y="112" text-anchor="middle" class="text-ink" font-size="10">• drives the whole workflow</text>
+
+    <rect class="box-fill box-host" x="40" y="220" width="200" height="100" rx="6"/>
+    <text x="140" y="244" text-anchor="middle" class="text-host" font-size="12" font-weight="600">DPM @ Bitsafe</text>
+    <text x="140" y="265" text-anchor="middle" class="text-ink" font-size="10">/hosting-policy</text>
+    <text x="140" y="280" text-anchor="middle" class="text-ink" font-size="10">/hosting-keys</text>
+    <text x="140" y="295" text-anchor="middle" class="text-ink" font-size="10">/tenant/onboarding-request</text>
+    <text x="140" y="310" text-anchor="middle" class="text-muted" font-size="10">co-signs its row of P2P</text>
+
+    <rect class="box-fill box-host" x="280" y="220" width="200" height="100" rx="6"/>
+    <text x="380" y="244" text-anchor="middle" class="text-host" font-size="12" font-weight="600">DPM @ DA</text>
+    <text x="380" y="265" text-anchor="middle" class="text-ink" font-size="10">/hosting-policy</text>
+    <text x="380" y="280" text-anchor="middle" class="text-ink" font-size="10">/hosting-keys</text>
+    <text x="380" y="295" text-anchor="middle" class="text-ink" font-size="10">/tenant/onboarding-request</text>
+    <text x="380" y="310" text-anchor="middle" class="text-muted" font-size="10">co-signs its row of P2P</text>
+
+    <rect class="box-fill box-host" x="520" y="220" width="200" height="100" rx="6"/>
+    <text x="620" y="244" text-anchor="middle" class="text-host" font-size="12" font-weight="600">DPM @ PixelPlex</text>
+    <text x="620" y="265" text-anchor="middle" class="text-ink" font-size="10">/hosting-policy</text>
+    <text x="620" y="280" text-anchor="middle" class="text-ink" font-size="10">/hosting-keys</text>
+    <text x="620" y="295" text-anchor="middle" class="text-ink" font-size="10">/tenant/onboarding-request</text>
+    <text x="620" y="310" text-anchor="middle" class="text-muted" font-size="10">co-signs its row of P2P</text>
+
+    <line x1="320" y1="120" x2="160" y2="220" class="line-sovereign" stroke-width="1.5" marker-end="url(#arrAS)"/>
+    <line x1="380" y1="120" x2="380" y2="220" class="line-sovereign" stroke-width="1.5" marker-end="url(#arrAS)"/>
+    <line x1="440" y1="120" x2="600" y2="220" class="line-sovereign" stroke-width="1.5" marker-end="url(#arrAS)"/>
+    <text x="220" y="175" class="text-sovereign" font-size="10">HTTP + sig</text>
+    <text x="395" y="175" class="text-sovereign" font-size="10">HTTP + sig</text>
+    <text x="500" y="175" class="text-sovereign" font-size="10">HTTP + sig</text>
+
+    <text x="380" y="350" text-anchor="middle" class="text-muted" font-size="11">DPMs do NOT talk to each other for this workflow. Wallet collects co-sigs and submits.</text>
+  </svg>
+  </div>
+
+  <p>Alice's wallet runs the state machine. It fetches each host's policy and signing keys, builds all three topology mappings locally, signs them with her root key, and pushes the bundle to each DPM independently. Each DPM's operator approves locally, returns its co-signature on its row of <code>PartyToParticipant</code>, and the wallet aggregates + submits.</p>
+
+  <div class="two-col">
+    <div class="col pros">
+      <h4>Pros</h4>
+      <ul>
+        <li>Cleanest sovereignty &mdash; no host is "first among equals"</li>
+        <li>Alice can abort or change her mind mid-flow with no on-chain state</li>
+        <li>Maps directly to the splice-wallet-kernel architecture</li>
+        <li>DPMs need almost no new inter-DPM messaging</li>
+      </ul>
+    </div>
+    <div class="col cons">
+      <h4>Cons</h4>
+      <ul>
+        <li>Wallet must stay online for the whole flow (minutes &mdash; DPM has ~30s topology propagation waits)</li>
+        <li>Retry logic for transient host failures lives in the wallet</li>
+        <li>Most new code is client-side (TS / browser extension) &mdash; harder to harden</li>
+        <li>Wallet has to fan out N HTTP calls; UX friction grows with M</li>
+      </ul>
+    </div>
+  </div>
+
+  <p><strong>Pick this when:</strong> you want Alice's sovereignty maximized and you're already investing in the browser-extension Wallet Gateway flavor of splice-wallet-kernel.</p>
+</div>
+
+<!-- =================== OPTION B =================== -->
+<div class="option">
+  <div class="option-header">
+    <div class="option-letter">B</div>
+    <div class="option-title">One DPM coordinates on Alice's behalf</div>
+    <div class="option-tag">most code reuse &middot; pragmatic MVP</div>
+  </div>
+
+  <div class="diagram-wrap">
+  <svg viewBox="0 0 760 360" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="arrBS" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+        <path class="arr-sovereign" d="M0,0 L10,5 L0,10 z"/>
+      </marker>
+      <marker id="arrBT" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+        <path class="arr-transport" d="M0,0 L10,5 L0,10 z"/>
+      </marker>
+    </defs>
+    <rect class="box-fill box-sovereign" x="30" y="140" width="180" height="80" rx="8"/>
+    <text x="120" y="165" text-anchor="middle" class="text-sovereign" font-size="13" font-weight="700">Alice's wallet</text>
+    <text x="120" y="186" text-anchor="middle" class="text-ink" font-size="10">signs NS + P2K + her</text>
+    <text x="120" y="200" text-anchor="middle" class="text-ink" font-size="10">half of P2P, then POSTs</text>
+    <text x="120" y="214" text-anchor="middle" class="text-muted" font-size="10">one HTTP call</text>
+
+    <rect class="box-fill box-coord" x="280" y="120" width="200" height="120" rx="8"/>
+    <text x="380" y="144" text-anchor="middle" class="text-sovereign" font-size="13" font-weight="700">DPM @ Bitsafe</text>
+    <text x="380" y="160" text-anchor="middle" class="text-sovereign" font-size="10">(coordinator)</text>
+    <text x="380" y="180" text-anchor="middle" class="text-ink" font-size="10">• validates Alice's sigs</text>
+    <text x="380" y="195" text-anchor="middle" class="text-ink" font-size="10">• fans out via Noise</text>
+    <text x="380" y="210" text-anchor="middle" class="text-ink" font-size="10">• aggregates co-sigs</text>
+    <text x="380" y="225" text-anchor="middle" class="text-ink" font-size="10">• submits AddTransactions</text>
+
+    <rect class="box-fill box-host" x="560" y="60" width="180" height="70" rx="6"/>
+    <text x="650" y="85" text-anchor="middle" class="text-host" font-size="12" font-weight="600">DPM @ DA</text>
+    <text x="650" y="103" text-anchor="middle" class="text-ink" font-size="10">operator accepts</text>
+    <text x="650" y="118" text-anchor="middle" class="text-ink" font-size="10">co-signs P2P row</text>
+
+    <rect class="box-fill box-host" x="560" y="230" width="180" height="70" rx="6"/>
+    <text x="650" y="255" text-anchor="middle" class="text-host" font-size="12" font-weight="600">DPM @ PixelPlex</text>
+    <text x="650" y="273" text-anchor="middle" class="text-ink" font-size="10">operator accepts</text>
+    <text x="650" y="288" text-anchor="middle" class="text-ink" font-size="10">co-signs P2P row</text>
+
+    <line x1="210" y1="180" x2="280" y2="180" class="line-sovereign" stroke-width="2" marker-end="url(#arrBS)"/>
+    <text x="245" y="170" text-anchor="middle" class="text-sovereign" font-size="10">HTTP+sig</text>
+
+    <line x1="480" y1="150" x2="560" y2="95" class="line-transport" stroke-width="1.5" marker-end="url(#arrBT)"/>
+    <line x1="480" y1="210" x2="560" y2="265" class="line-transport" stroke-width="1.5" marker-end="url(#arrBT)"/>
+    <text x="510" y="115" class="text-gateway" font-size="10">Noise +</text>
+    <text x="510" y="128" class="text-gateway" font-size="10">new wire codes</text>
+    <text x="510" y="250" class="text-gateway" font-size="10">Noise +</text>
+    <text x="510" y="263" class="text-gateway" font-size="10">new wire codes</text>
+
+    <text x="380" y="345" text-anchor="middle" class="text-muted" font-size="11">Bitsafe DPM extends the existing workflow state machine with a new `tenant_onboarding` flow.</text>
+  </svg>
+  </div>
+
+  <p>Alice's wallet talks to one DPM (her choice). That DPM becomes the coordinator for this single workflow run and reuses the existing Noise channel + workflow state machine to coordinate with the other DPMs. Alice's wallet is a thin client making one HTTP call and polling for completion.</p>
+
+  <div class="two-col">
+    <div class="col pros">
+      <h4>Pros</h4>
+      <ul>
+        <li>Massive code reuse &mdash; workflow engine, Noise transport, invitations UI, artifact store all keep working</li>
+        <li>Wallet UX is one button + one progress bar</li>
+        <li>Easier to add 3-strikes retries, resume-after-restart, operator approval</li>
+        <li>Inter-DPM trust already established via existing PSKs</li>
+      </ul>
+    </div>
+    <div class="col cons">
+      <h4>Cons</h4>
+      <ul>
+        <li>Asymmetric trust &mdash; the chosen coordinator sees the request first and can stall (though not forge)</li>
+        <li>Need a "switch coordinator" recovery path if Bitsafe stalls; Alice retransmits to DA</li>
+        <li>Coordinator is a single point of liveness for this user's onboarding (until retransmit)</li>
+        <li>Doesn't generalize as cleanly to non-DPM hosts</li>
+      </ul>
+    </div>
+  </div>
+
+  <p><strong>Pick this when:</strong> you want to ship the MVP fastest with the least new code. Most of the work is a new <code>workflow/tenant_onboarding/</code> module that mirrors the existing <code>workflow/onboarding/</code> module.</p>
+</div>
+
+<!-- =================== OPTION C =================== -->
+<div class="option">
+  <div class="option-header">
+    <div class="option-letter">C</div>
+    <div class="option-title">Wallet Gateway as coordinator</div>
+    <div class="option-tag">ecosystem-aligned &middot; CIP-103 native</div>
+  </div>
+
+  <div class="diagram-wrap">
+  <svg viewBox="0 0 820 360" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="arrCS" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+        <path class="arr-sovereign" d="M0,0 L10,5 L0,10 z"/>
+      </marker>
+      <marker id="arrCH" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+        <path class="arr-host" d="M0,0 L10,5 L0,10 z"/>
+      </marker>
+    </defs>
+    <rect class="box-fill box-sovereign" x="20" y="140" width="160" height="80" rx="8"/>
+    <text x="100" y="165" text-anchor="middle" class="text-sovereign" font-size="13" font-weight="700">Alice's wallet</text>
+    <text x="100" y="188" text-anchor="middle" class="text-ink" font-size="10">signing only —</text>
+    <text x="100" y="202" text-anchor="middle" class="text-ink" font-size="10">keys never leave</text>
+
+    <rect class="box-fill box-gateway" x="240" y="120" width="220" height="120" rx="8"/>
+    <text x="350" y="145" text-anchor="middle" class="text-gateway" font-size="13" font-weight="700">Wallet Gateway</text>
+    <text x="350" y="162" text-anchor="middle" class="text-gateway" font-size="10">(browser ext / self-host /</text>
+    <text x="350" y="176" text-anchor="middle" class="text-gateway" font-size="10">3rd-party service)</text>
+    <text x="350" y="196" text-anchor="middle" class="text-ink" font-size="10">• builds proposals</text>
+    <text x="350" y="211" text-anchor="middle" class="text-ink" font-size="10">• fans out to DPMs</text>
+    <text x="350" y="226" text-anchor="middle" class="text-ink" font-size="10">• submits AddTransactions</text>
+
+    <rect class="box-fill box-host" x="540" y="40" width="240" height="62" rx="6"/>
+    <text x="660" y="62" text-anchor="middle" class="text-host" font-size="12" font-weight="600">DPM @ Bitsafe</text>
+    <text x="660" y="80" text-anchor="middle" class="text-ink" font-size="10">/tenant/* HTTP API</text>
+    <text x="660" y="94" text-anchor="middle" class="text-muted" font-size="10">operator-approval invitations</text>
+
+    <rect class="box-fill box-host" x="540" y="148" width="240" height="62" rx="6"/>
+    <text x="660" y="170" text-anchor="middle" class="text-host" font-size="12" font-weight="600">DPM @ DA</text>
+    <text x="660" y="188" text-anchor="middle" class="text-ink" font-size="10">/tenant/* HTTP API</text>
+    <text x="660" y="202" text-anchor="middle" class="text-muted" font-size="10">operator-approval invitations</text>
+
+    <rect class="box-fill box-host" x="540" y="256" width="240" height="62" rx="6"/>
+    <text x="660" y="278" text-anchor="middle" class="text-host" font-size="12" font-weight="600">DPM @ PixelPlex</text>
+    <text x="660" y="296" text-anchor="middle" class="text-ink" font-size="10">/tenant/* HTTP API</text>
+    <text x="660" y="310" text-anchor="middle" class="text-muted" font-size="10">operator-approval invitations</text>
+
+    <line x1="180" y1="180" x2="240" y2="180" class="line-sovereign" stroke-width="2" marker-end="url(#arrCS)"/>
+    <text x="210" y="170" text-anchor="middle" class="text-sovereign" font-size="10">CIP-103</text>
+
+    <line x1="460" y1="150" x2="540" y2="75" class="line-host" stroke-width="1.5" marker-end="url(#arrCH)"/>
+    <line x1="460" y1="180" x2="540" y2="180" class="line-host" stroke-width="1.5" marker-end="url(#arrCH)"/>
+    <line x1="460" y1="210" x2="540" y2="285" class="line-host" stroke-width="1.5" marker-end="url(#arrCH)"/>
+    <text x="490" y="110" class="text-host" font-size="10">HTTP</text>
+    <text x="490" y="170" class="text-host" font-size="10">HTTP</text>
+    <text x="490" y="248" class="text-host" font-size="10">HTTP</text>
+
+    <text x="410" y="345" text-anchor="middle" class="text-muted" font-size="11">Gateway can be Alice's browser extension (most sovereign) or a remote service Alice trusts to orchestrate.</text>
+  </svg>
+  </div>
+
+  <p>The Wallet Gateway from the splice-wallet-kernel architecture takes the coordinator role. Alice's wallet only signs (via the CIP-103 signing channel). The Gateway fans out HTTP requests to each DPM independently &mdash; no Noise required at this layer. DPMs still talk Noise <em>among themselves</em> if they need to (e.g., for inter-host ACS replication), but the user-onboarding flow is gateway-mediated.</p>
+
+  <div class="two-col">
+    <div class="col pros">
+      <h4>Pros</h4>
+      <ul>
+        <li>Aligns with the ecosystem's CIP-103 architecture out of the box</li>
+        <li>Decouples "who orchestrates" from "who signs" from "who hosts" &mdash; all three are pluggable</li>
+        <li>Gateway can be the browser extension (most sovereign) without code changes elsewhere</li>
+        <li>Hosts don't need new Noise message types &mdash; pure HTTP</li>
+        <li>Easiest to test (HTTP fixtures vs Noise harnesses)</li>
+      </ul>
+    </div>
+    <div class="col cons">
+      <h4>Cons</h4>
+      <ul>
+        <li>Three components instead of two &mdash; more moving parts</li>
+        <li>If Gateway is a remote service, it's an extra trust dependency unless purely transport</li>
+        <li>The browser-extension Gateway is <code>NOT IMPLEMENTED YET</code> in splice-wallet-kernel</li>
+        <li>DPM's existing operator-to-operator design has to coexist with a separate user-onboarding HTTP surface</li>
+      </ul>
+    </div>
+  </div>
+
+  <p><strong>Pick this when:</strong> you're playing for the long game and want the user-onboarding shape to be ecosystem-standard rather than DPM-specific. This is also the only option where Alice can plug in a non-DPM host (any service that implements the same <code>/tenant/*</code> contract).</p>
+</div>
+
+<h2>Side-by-side</h2>
+
+<table>
+  <tr><th>Property</th><th>A &mdash; Wallet</th><th>B &mdash; DPM coord</th><th>C &mdash; Gateway</th></tr>
+  <tr>
+    <td>Sovereignty (Alice in control)</td>
+    <td><span class="pill good">highest</span></td>
+    <td><span class="pill warn">single-host bottleneck</span></td>
+    <td><span class="pill good">high (extension)</span></td>
+  </tr>
+  <tr>
+    <td>Code reuse from DPM today</td>
+    <td><span class="pill warn">low</span></td>
+    <td><span class="pill good">highest</span></td>
+    <td><span class="pill info">moderate</span></td>
+  </tr>
+  <tr>
+    <td>New wallet code (TS)</td>
+    <td><span class="pill bad">substantial</span></td>
+    <td><span class="pill good">minimal</span></td>
+    <td><span class="pill info">moderate</span></td>
+  </tr>
+  <tr>
+    <td>New Noise wire codes</td>
+    <td>none</td>
+    <td><span class="pill warn">~3 new codes</span></td>
+    <td>none</td>
+  </tr>
+  <tr>
+    <td>New DPM HTTP endpoints</td>
+    <td><span class="pill warn">/hosting-policy, /hosting-keys, /tenant/*</span></td>
+    <td><span class="pill warn">/tenant/* (entrypoint only)</span></td>
+    <td><span class="pill warn">/hosting-policy, /hosting-keys, /tenant/*</span></td>
+  </tr>
+  <tr>
+    <td>Works with non-DPM hosts</td>
+    <td><span class="pill good">yes</span></td>
+    <td><span class="pill bad">no</span></td>
+    <td><span class="pill good">yes</span></td>
+  </tr>
+  <tr>
+    <td>Time to MVP</td>
+    <td><span class="pill warn">weeks</span></td>
+    <td><span class="pill good">days–weeks</span></td>
+    <td><span class="pill warn">weeks (+ext)</span></td>
+  </tr>
+  <tr>
+    <td>Ecosystem alignment (CIP-103)</td>
+    <td><span class="pill info">partial</span></td>
+    <td><span class="pill bad">none</span></td>
+    <td><span class="pill good">native</span></td>
+  </tr>
+</table>
+
+<h2>New APIs and standards needed (any option)</h2>
+
+<h3>1. Host discovery and policy disclosure</h3>
+<pre>GET /hosting-policy
+→ { synchronizer_id, operator_party, willing_to_host_users: true,
+    minimum_threshold, fee_schedule, sla,
+    supported_token_standards, onboarding_endpoint, terms_uri }
+
+GET /hosting-keys
+→ { participant_id, daml_signing_public_key,
+    namespace_fingerprint, valid_from, signed_attestation }</pre>
+<div class="callout">Required because Canton 3.4+ embeds each host's DAML signing key directly in <code>PartyToParticipant</code> entries. Alice's wallet (or the coordinator) can't build the proposal without reading these from each candidate host.</div>
+
+<h3>2. Tenant onboarding HTTP endpoints (DPM-side)</h3>
+<pre>POST /tenant/onboarding-request
+body: {
+  namespace_delegation: &lt;signed-tx-bytes&gt;,
+  party_to_key_mapping: &lt;signed-tx-bytes&gt;,
+  party_to_participant: &lt;unsigned-tx-bytes&gt;,
+  hosting_terms: { threshold, fee_commitment },
+  alice_proof_of_intent: &lt;root-key-sig-over-everything&gt;
+}
+→ 202 + request_id
+
+GET  /tenant/onboarding-request/{id}      → { status, co_signature_if_signed }
+POST /tenant/onboarding-request/{id}/cancel</pre>
+
+<h3>3. Inter-DPM Noise wire codes (Option B only)</h3>
+<table>
+  <tr><th>Wire code</th><th>Direction</th><th>Purpose</th></tr>
+  <tr><td><code>0x0020 UserOnboardingInvite</code></td><td>Coord → peer</td><td>Alice wants to onboard; here's her signed bundle</td></tr>
+  <tr><td><code>0x0210 UserOnboardingAccept</code></td><td>Peer → coord</td><td>Operator approved; co-signature on our P2P row</td></tr>
+  <tr><td><code>0x0211 UserOnboardingDecline</code></td><td>Peer → coord</td><td>Operator declined; reason code</td></tr>
+</table>
+
+<h3>4. Splice DAML follow-through</h3>
+<p>After topology lands, Alice still needs to exercise <code>ExternalPartySetupProposal_Accept</code> to get her <code>ValidatorRight</code> + <code>TransferPreapproval</code>. Today's Splice model assumes <em>one</em> validator per setup proposal. With multiple hosts, design questions:</p>
+<ul>
+  <li>Three separate <code>ExternalPartySetupProposal</code>s, one per validator? Then three accepts, three <code>ValidatorRight</code>s.</li>
+  <li>Or a new <code>MultiValidatorPartySetupProposal</code> template with the hosts as collective signatories?</li>
+  <li>How does fee renewal (<code>TransferPreapproval_Renew</code>) distribute across multiple hosts?</li>
+</ul>
+<div class="callout warn">This is the part where DPM extension alone is not enough &mdash; Splice's DAML layer needs an ecosystem-level standardization decision about multi-host external parties. Worth raising early.</div>
+
+<h3>5. Trust establishment</h3>
+<table>
+  <tr><th>Option</th><th>How Alice → DPM authn works</th><th>Tradeoff</th></tr>
+  <tr><td>Anonymous + self-signed</td><td>TLS for transport; Alice's root-key signature over the bundle <em>is</em> the credential</td><td>Simplest. Needs rate-limiting / payment-to-prevent-spam.</td></tr>
+  <tr><td>Pre-paid escrow</td><td>Alice deposits hosting fee under a temporary party first; signed bundle references the escrow</td><td>Chicken-and-egg: needs a temp party before the main party.</td></tr>
+  <tr><td>KYC-attested</td><td>Alice presents a signed credential from a known issuer (e.g. OAuth IdP)</td><td>Most permissioned. Compatible with existing DPM auth (Keycloak/Auth0).</td></tr>
+</table>
+
+<h2>Recommended path</h2>
+
+<div class="card">
+<p><strong>Start with B, converge toward C.</strong></p>
+<p>B is the lowest-risk MVP &mdash; it adds one new <code>tenant_onboarding</code> workflow module to DPM and reuses everything else. It validates the user-facing flow with real operators in days, not weeks.</p>
+<p>Once that's live, refactor the coordinator role behind a HTTP surface that's also implementable by a standalone Wallet Gateway. At that point you're effectively in C, and Alice can pick: "coordinate via Bitsafe DPM" or "coordinate via my own browser extension." Same DPM-side endpoints serve both.</p>
+<p>Option A on its own is too much wallet code for the first iteration &mdash; but A is what C becomes if the Gateway is the browser extension.</p>
+</div>
+
+<h2>Open questions worth your judgment</h2>
+
+<ul>
+  <li><strong>Is Alice anonymous or attested?</strong> Permissionless hosting needs anti-spam and a payment commitment. KYC-gated hosting needs an identity attestation. The choice affects whether the <code>/tenant/onboarding-request</code> endpoint is open or auth-gated.</li>
+  <li><strong>One <code>ExternalPartySetupProposal</code> or per-validator?</strong> Touches the Splice DAML layer. Likely a new multi-validator template is needed.</li>
+  <li><strong>What if one host accepts but another declines?</strong> Abort, auto-replace with another willing host, or lower the threshold? Each has UX consequences.</li>
+  <li><strong>Migration vs onboarding.</strong> "Swap a host" probably uses the same flow with Alice's root key authorizing a new <code>PartyToParticipant</code>. DPM's existing <code>kick</code> workflow is close but assumes the kicker is a peer, not the party owner.</li>
+  <li><strong>How does Alice discover candidate hosts?</strong> A registry contract on-ledger? A static config in the wallet? A DID-style discovery mechanism?</li>
+</ul>
+
+<div class="nav">
+  <a href="../index.html">&larr; back to index</a>
+</div>
+
+</body>
+</html>
