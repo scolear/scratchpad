@@ -5,41 +5,42 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Onboarding Decentralized Alice &mdash; scratchpad</title>
 <style>
+  @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Roboto+Mono:wght@400;500;700&display=swap");
   :root {
-    --fg: #1a1a1a;
-    --muted: #6b6b6b;
-    --accent: #2a5db0;
-    --bg: #fafafa;
-    --card: #fff;
-    --border: #e5e5e5;
-    --sovereign: #2d8049;
-    --host: #2a5db0;
-    --transport: #c4761f;
-    --warn: #c4761f;
-    --bad: #c0392b;
-    --code-bg: #f4f4f6;
-    --diagram-bg: #fbfbfc;
+    --fg: #1A1714;
+    --muted: #66605C;
+    --accent: #D63A0F;
+    --bg: #FAF9F8;
+    --card: #FFFFFF;
+    --border: #E0DBDA;
+    --sovereign: #D63A0F;
+    --host: #1D4ED8;
+    --transport: #B45309;
+    --warn: #B45309;
+    --bad: #C0392B;
+    --code-bg: #F2F0EE;
+    --diagram-bg: #F2F0EE;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --fg: #e8e8e8;
-      --muted: #999;
-      --accent: #79a7ff;
-      --bg: #16181c;
-      --card: #1f2228;
-      --border: #2a2e36;
-      --sovereign: #7ee787;
-      --host: #79c0ff;
-      --transport: #ffa657;
-      --warn: #ffa657;
-      --bad: #ff7b72;
-      --code-bg: #1a1d22;
-      --diagram-bg: #1a1d22;
+      --fg: #FFFFFF;
+      --muted: #8F7A6E;
+      --accent: #FF834D;
+      --bg: #0F0E0D;
+      --card: #1E1A17;
+      --border: #2A2420;
+      --sovereign: #FF834D;
+      --host: #418DF0;
+      --transport: #EAB308;
+      --warn: #EAB308;
+      --bad: #FF7B72;
+      --code-bg: #1A1714;
+      --diagram-bg: #1A1714;
     }
   }
   * { box-sizing: border-box; }
   body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    font-family: "Space Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
     max-width: 920px; margin: 0 auto; padding: 3rem 1.5rem 4rem;
     color: var(--fg); background: var(--bg); line-height: 1.6;
   }
@@ -51,19 +52,19 @@
   p { margin: .6rem 0; }
   small.subtitle { color: var(--muted); font-size: .95rem; }
   a { color: var(--accent); }
-  code, .mono { font-family: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, Consolas, monospace; }
+  code, .mono { font-family: "Roboto Mono", ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, Consolas, monospace; }
   code { background: var(--code-bg); border: 1px solid var(--border); padding: .1rem .35rem; border-radius: 4px; font-size: .88em; }
   pre {
     background: var(--code-bg); border: 1px solid var(--border); border-radius: 6px;
     padding: 1rem; overflow-x: auto; font-size: .82rem; line-height: 1.5;
-    font-family: ui-monospace, monospace;
+    font-family: "Roboto Mono", ui-monospace, monospace;
   }
   .card {
     background: var(--card); border: 1px solid var(--border); border-radius: 8px;
     padding: 1rem 1.25rem; margin: 1rem 0;
   }
   .pill {
-    display: inline-block; font-family: ui-monospace, monospace; font-size: .7rem;
+    display: inline-block; font-family: "Roboto Mono", ui-monospace, monospace; font-size: .7rem;
     padding: 2px 8px; border-radius: 999px; border: 1px solid var(--border);
     color: var(--muted); margin-right: 4px;
   }
@@ -83,14 +84,14 @@
     border-bottom: 1px solid var(--border); padding-bottom: .75rem; margin-bottom: 1rem;
     flex-wrap: wrap;
   }
-  .option-letter { font-family: ui-monospace, monospace; font-size: 2rem; font-weight: 700; color: var(--sovereign); line-height: 1; }
+  .option-letter { font-family: "Roboto Mono", ui-monospace, monospace; font-size: 2rem; font-weight: 700; color: var(--sovereign); line-height: 1; }
   .option-title { font-size: 1.15rem; font-weight: 600; }
   .option-tag { color: var(--muted); font-size: .82rem; margin-left: auto; }
   .diagram-wrap {
     background: var(--diagram-bg); border: 1px solid var(--border); border-radius: 8px;
     padding: 1.25rem; margin: 1rem 0; display: flex; justify-content: center;
   }
-  .diagram-wrap svg { max-width: 100%; height: auto; font-family: ui-monospace, monospace; }
+  .diagram-wrap svg { max-width: 100%; height: auto; font-family: "Roboto Mono", ui-monospace, monospace; }
   /* SVG styling via CSS classes — references parent CSS vars */
   .diagram-wrap svg .box-fill { fill: var(--card); }
   .diagram-wrap svg .box-sovereign { stroke: var(--sovereign); stroke-width: 2; }
