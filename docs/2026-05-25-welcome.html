@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Welcome &mdash; scratchpad</title>
+  <style>
+    :root {
+      --fg: #1a1a1a;
+      --muted: #6b6b6b;
+      --accent: #2a5db0;
+      --bg: #fafafa;
+      --card: #fff;
+      --border: #e5e5e5;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --fg: #e8e8e8;
+        --muted: #999;
+        --accent: #79a7ff;
+        --bg: #16181c;
+        --card: #1f2228;
+        --border: #2a2e36;
+      }
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 3rem 1.5rem 4rem;
+      color: var(--fg);
+      background: var(--bg);
+      line-height: 1.6;
+    }
+    a { color: var(--accent); }
+    h1 { letter-spacing: -.01em; margin-bottom: .25rem; }
+    .date { color: var(--muted); margin-bottom: 2rem; font-variant-numeric: tabular-nums; }
+    code, pre {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+    }
+    code { padding: .1rem .35rem; font-size: .9em; }
+    pre { padding: 1rem; overflow-x: auto; font-size: .85rem; }
+    .nav { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+    .nav a { color: var(--muted); text-decoration: none; }
+    .nav a:hover { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <h1>Welcome to scratchpad</h1>
+  <div class="date">2026-05-25</div>
+
+  <p>This is a running collection of one-off HTML documents &mdash; reports, plans, summaries, option comparisons &mdash; published as a tiny static site so they can be shared with a link.</p>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>Each document is a self-contained HTML file in <code>docs/</code></li>
+    <li>Filenames follow <code>YYYY-MM-DD-short-slug.html</code> so they sort naturally</li>
+    <li>The <a href="../index.html">index</a> lists every doc, newest first</li>
+    <li>Everything is published via GitHub Pages from <a href="https://github.com/scolear/scratchpad">scolear/scratchpad</a></li>
+  </ul>
+
+  <h2>Sharing a doc</h2>
+  <p>Each doc has a stable URL of the form:</p>
+  <pre>https://scolear.github.io/scratchpad/docs/&lt;filename&gt;.html</pre>
+  <p>Paste that into Slack, email, anywhere. The doc is fully self-contained (inline CSS, no external assets), so links won't rot.</p>
+
+  <div class="nav">
+    <a href="../index.html">&larr; back to index</a>
+  </div>
+</body>
+</html>
