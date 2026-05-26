@@ -140,6 +140,10 @@
 <div class="date">2026-05-25</div>
 <p><small class="subtitle">Three candidate flows for extending DPM (dec-party-onboarding) to support user-initiated multi-host party onboarding.</small></p>
 
+<div class="callout warn" style="margin-top: 1.25rem;">
+<strong>Update 2026-05-26.</strong> The Option B "new Noise wire codes" path is superseded by the topology-ledger-native design in <a href="2026-05-26-noise-sunset-via-topology-ledger.html">Noise sunset via the topology ledger</a> &mdash; which collapses all three options' coordination work into Canton's native partial-signature topology propagation. The discovery and policy-disclosure pieces below still stand; the inter-DPM messaging assumptions do not.
+</div>
+
 <h2>The problem in one paragraph</h2>
 <div class="card">
 DPM today is a <strong>node-operator-to-node-operator</strong> choreographer: three operators each run a DPM, exchange a Noise PSK out-of-band, and jointly bootstrap a shared <code>DecentralizedNamespaceDefinition</code>. Decentralized Alice is shaped differently &mdash; she's an <strong>end user</strong> with a console wallet, holding her own single-owner root key, who wants three independent operators (Bitsafe, DA, PixelPlex) to host her party under <code>Confirmation</code> permission with a 2-of-3 threshold. There is no shared namespace, no PSK between Alice and the hosts, and no expectation that Alice runs anything node-shaped. When she clicks <em>"onboard me as a decentralized party,"</em> what runs the workflow?
