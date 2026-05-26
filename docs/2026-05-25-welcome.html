@@ -34,6 +34,8 @@
     }
     a { color: var(--accent); }
     h1 { letter-spacing: -.01em; margin-bottom: .25rem; }
+    h2 { margin-top: 2.25rem; letter-spacing: -.005em; }
+    h3 { margin-top: 1.5rem; font-size: 1.05rem; color: var(--fg); }
     .date { color: var(--muted); margin-bottom: 2rem; font-variant-numeric: tabular-nums; }
     code, pre {
       background: var(--card);
@@ -41,30 +43,94 @@
       border-radius: 4px;
     }
     code { padding: .1rem .35rem; font-size: .9em; }
-    pre { padding: 1rem; overflow-x: auto; font-size: .85rem; }
+    pre { padding: 1rem; overflow-x: auto; font-size: .85rem; line-height: 1.45; }
+    ol li, ul li { margin-bottom: .35rem; }
     .nav { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--border); }
     .nav a { color: var(--muted); text-decoration: none; }
     .nav a:hover { color: var(--accent); }
+    .callout {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 4px;
+      padding: .75rem 1rem;
+      margin: 1rem 0;
+      font-size: .95rem;
+    }
   </style>
 </head>
 <body>
   <h1>Welcome to scratchpad</h1>
   <div class="date">2026-05-25</div>
 
-  <p>This is a running collection of one-off HTML documents &mdash; reports, plans, summaries, option comparisons &mdash; published as a tiny static site so they can be shared with a link.</p>
+  <p><strong>scratchpad</strong> is a running, public collection of one-off HTML documents &mdash; reports, plans, summaries, option comparisons, design sketches &mdash; produced in the flow of work and published as a tiny static site so they can be shared with a single link.</p>
 
-  <h2>How it works</h2>
+  <p>It's deliberately minimal: no CMS, no build step, no framework. Just HTML files in a git repo, served by GitHub Pages.</p>
+
+  <h2>Why it exists</h2>
+  <p>The author often asks an AI assistant (Claude) to write up an idea, an analysis, or a set of options as an HTML document. Without a home, those docs end up scattered &mdash; in chat scrollback, in random folders, in throwaway Netlify drops. scratchpad gives them a permanent address.</p>
   <ul>
-    <li>Each document is a self-contained HTML file in <code>docs/</code></li>
-    <li>Filenames follow <code>YYYY-MM-DD-short-slug.html</code> so they sort naturally</li>
-    <li>The <a href="../index.html">index</a> lists every doc, newest first</li>
-    <li>Everything is published via GitHub Pages from <a href="https://github.com/scolear/scratchpad">scolear/scratchpad</a></li>
+    <li>One stable URL per doc, paste-able into Slack or email</li>
+    <li>One index listing everything, so old docs are still findable</li>
+    <li>Public, but unindexed &mdash; you need the link</li>
+    <li>Versioned (git), so the history of an idea is preserved</li>
   </ul>
 
+  <h2>How it's structured</h2>
+  <pre>scratchpad/
+├── index.html              &larr; landing page, lists every doc newest-first
+├── docs/
+│   ├── 2026-05-25-welcome.html
+│   ├── 2026-05-25-decentralized-alice.html
+│   ├── 2026-05-26-noise-sunset-via-topology-ledger.html
+│   └── ...
+└── README.md               &larr; brief notes for humans (and AIs) browsing the repo</pre>
+
+  <h3>Filename convention</h3>
+  <p><code>YYYY-MM-DD-short-slug.html</code>. The date prefix means files sort naturally on disk and in the file browser; the slug is a few hyphenated words capturing the topic.</p>
+
+  <h3>Self-contained docs</h3>
+  <p>Each HTML file inlines its own CSS and (where needed) JavaScript. No external assets, no shared stylesheet. This has two payoffs:</p>
+  <ul>
+    <li>A doc can be downloaded and opened offline without breaking</li>
+    <li>Restyling the site later won't retroactively change old docs &mdash; each is frozen in the visual style it was published in</li>
+  </ul>
+
+  <h3>Index page</h3>
+  <p><code>index.html</code> is the table of contents. Each entry is a card with title, date, and a one-line description. New docs are added at the top.</p>
+
+  <h2>Adding a doc &mdash; the workflow</h2>
+  <p>When a new doc is created:</p>
+  <ol>
+    <li>The HTML is written to <code>docs/YYYY-MM-DD-slug.html</code></li>
+    <li>A new entry is prepended to the <code>&lt;ul class="docs"&gt;</code> in <code>index.html</code></li>
+    <li>The changes are committed and pushed to <code>main</code></li>
+    <li>GitHub Pages rebuilds the site automatically (takes ~30s)</li>
+    <li>The doc is now live at its stable URL, ready to share</li>
+  </ol>
+
+  <p>The author can ask Claude to do this end-to-end: "write up these tradeoffs as an HTML doc and publish it." Claude knows where the repo lives and what the conventions are because the workflow is saved in its global memory.</p>
+
   <h2>Sharing a doc</h2>
-  <p>Each doc has a stable URL of the form:</p>
+  <p>Every doc has a stable URL of the form:</p>
   <pre>https://scolear.github.io/scratchpad/docs/&lt;filename&gt;.html</pre>
-  <p>Paste that into Slack, email, anywhere. The doc is fully self-contained (inline CSS, no external assets), so links won't rot.</p>
+  <p>Paste that into Slack, email, anywhere. Because each file is self-contained and committed to git, the URL won't rot &mdash; old docs keep working even as new ones get added and the site evolves.</p>
+
+  <div class="callout">
+    The repo itself (<a href="https://github.com/scolear/scratchpad">github.com/scolear/scratchpad</a>) is public too. Teammates who want to browse source, fork, or grep across docs can do that there.
+  </div>
+
+  <h2>What goes here, what doesn't</h2>
+  <p><strong>Belongs here:</strong> idea write-ups, exploration of options, summaries of long discussions, status reports, plans, design sketches &mdash; anything that's useful to share as a snapshot of thinking at a moment in time.</p>
+  <p><strong>Doesn't belong here:</strong></p>
+  <ul>
+    <li>Project deliverables that have their own repo or wiki</li>
+    <li>Anything containing secrets, internal-only data, or unreleased customer info &mdash; this site is public</li>
+    <li>Long-lived documentation that needs ongoing maintenance &mdash; scratchpad docs are intentionally frozen; if a topic keeps evolving, give it a real home</li>
+  </ul>
+
+  <h2>Editing or retiring a doc</h2>
+  <p>Docs are not immutable, but they're treated as snapshots. Light fixes (typos, broken links) get edited in place. When an idea is superseded, the better path is usually to write a new doc and reference the old one &mdash; that way the history of thinking is preserved. The 2026-05-26 topology-ledger doc, for instance, supersedes parts of the previous day's onboarding-options doc but doesn't replace it.</p>
 
   <div class="nav">
     <a href="../index.html">&larr; back to index</a>
