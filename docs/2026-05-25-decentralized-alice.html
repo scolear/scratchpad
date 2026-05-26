@@ -147,7 +147,7 @@ Alice holds her own namespace root key in her console wallet, but her on-ledger 
 <div class="ascii">root key  ──signs once──▶  PartyToKeyMapping { party: Alice, keys: [ext_sig_key] }
                                           │
                                           ▼
-ext_sig_key  ──signs each tx hash──▶  TransferCommand request
+ext_sig_key  ──signs each tx hash──▶  TransferInstruction request
                                           │
                                           ▼
               Bitsafe / DA / PixelPlex  (verify ext_sig_key against PartyToKeyMapping,
@@ -184,7 +184,7 @@ ext_sig_key  ──signs each tx hash──▶  TransferCommand request
 <h2>Per-transfer flow &mdash; "Alice sends 10 Amulets to Bob"</h2>
 
 <div class="ascii">[1] Wallet prepares command on Bitsafe → returns serialized prepared tx + hash
-        ExternalPartyAmuletRules_CreateTransferCommand(sender=Alice, receiver=Bob, amount=10)
+        Token Standard transfer → AmuletTransferInstruction(sender=Alice, receiver=Bob, amount=10)
 
 [2] Wallet independently recomputes the hash and verifies it matches
         (trust-no-single-host hygiene)
@@ -196,16 +196,17 @@ ext_sig_key  ──signs each tx hash──▶  TransferCommand request
         Each host verifies signature against Alice's PartyToKeyMapping in topology
 
 [5] 2-of-3 confirmations reach the Mediator → Sequencer timestamps
-        On-ledger result: a TransferCommand contract (Alice's signed authorization)
+        On-ledger result: an AmuletTransferInstruction contract (Alice's signed commitment,
+        amulets locked pending receiver acceptance)
 
-[6] A delegate exercises TransferCommand_Send
-        Selects fresh input Amulets, computes fees, creates Bob's output
+[6] Bob exercises TransferInstruction_Accept (or _Reject, or Alice _Withdraws, or expiry _Update)
+        Unlocks the locked amulet, creates Bob's output
         Re-confirmed by Alice's 2-of-3 quorum
 
-[7] Final state: Alice -10 -fees, Bob +10, TransferCommand archived</div>
+[7] Final state: Alice -10 -fees, Bob +10, AmuletTransferInstruction archived</div>
 
 <div class="callout">
-The <code>TransferCommand</code> contract created in step 5 is the "delegation contract" that's been talked about in the abstract: a concrete, ledger-visible, single-shot authorization that Alice externally signed and a delegate can execute. It decouples <em>"Alice's commitment to send X to Y"</em> from <em>"selecting which UTXOs and fees"</em> &mdash; useful because Alice doesn't have fresh ledger state.
+The <code>AmuletTransferInstruction</code> created in step 5 is the on-ledger "delegation contract" referenced in the abstract: a concrete, ledger-visible, single-shot authorization Alice externally signed via the Token Standard interface. It decouples <em>"Alice's commitment to send X to Y"</em> from <em>"settlement"</em> &mdash; the locked amulets sit there until the receiver accepts, the sender withdraws, or the deadline expires.
 </div>
 
 <h2>What's delegated to the hosts (and what isn't)</h2>
@@ -288,7 +289,7 @@ The <code>TransferCommand</code> contract created in step 5 is the "delegation c
 
 <h2>Where the tooling stands today</h2>
 
-<p>The Canton + Splice server side is fully wired: <code>generateExternalPartyTopology</code> builds the three mappings; <code>allocateExternalParty</code> ingests them; <code>TransferPreapproval</code> / <code>TransferCommand</code> / <code>ValidatorRight</code> / <code>MergeDelegation</code> compose the DAML-level delegation semantics. The DSO itself is built on the same <code>DecentralizedNamespaceDefinition</code> primitive that could (separately) be used to share namespace ownership.</p>
+<p>The Canton + Splice server side is fully wired: <code>generateExternalPartyTopology</code> builds the three mappings; <code>allocateExternalParty</code> ingests them; <code>TransferPreapproval</code> / <code>AmuletTransferInstruction</code> (Token Standard) / <code>ValidatorRight</code> / <code>MergeDelegation</code> compose the DAML-level delegation semantics. The DSO itself is built on the same <code>DecentralizedNamespaceDefinition</code> primitive that could (separately) be used to share namespace ownership.</p>
 
 <p>The client side &mdash; <a href="https://github.com/hyperledger-labs/splice-wallet-kernel">splice-wallet-kernel</a> &mdash; implements the corresponding TypeScript Wallet SDK, dApp SDK, and Wallet Gateway. It exposes <code>PartyMode.EXTERNAL</code> with pluggable signing drivers (internal, Fireblocks, Blockdaemon, participant). The multi-hosting workflow is documented and demonstrated in <code>examples/scripts/03-parties.ts</code>.</p>
 
