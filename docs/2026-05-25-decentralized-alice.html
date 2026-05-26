@@ -125,16 +125,14 @@ Alice holds her own namespace root key in her console wallet, but her on-ledger 
 
 <p>Because these are three independent records, you can mix-and-match the trust on each axis. "Self-sovereign identity + decentralized hosting + hot signing key" is just one valid configuration of the three knobs.</p>
 
-<h2>Two keys, two layers, two purposes</h2>
+<h2>Alice's key</h2>
+
+<p>One Ed25519 keypair in Alice's console wallet does both jobs that Canton models as separate: it owns her namespace (signs topology) and it's the registered signing key (signs every ledger transaction). The two-mapping split (<code>NamespaceDelegation</code> + <code>PartyToKeyMapping</code>) <em>allows</em> these to be different keys but doesn't require it. Same UX as a typical blockchain wallet.</p>
 
 <div class="grid">
   <div class="card">
-    <h4>Namespace root key</h4>
-    <p>Cold. Lives in Alice's console wallet (ideally hardware-backed). Signs <em>only</em> topology changes &mdash; onboarding, key rotation, swapping hosts. Defines Alice's namespace as <code>Alice::&lt;root-fp&gt;</code>. Never signs a transfer.</p>
-  </div>
-  <div class="card">
-    <h4>External signing key</h4>
-    <p>Hot. Also in Alice's wallet. Signs the hash of every prepared ledger transaction. Its authority exists only because the root key published a <code>PartyToKeyMapping</code> binding it to Alice's Party. Rotatable cheaply.</p>
+    <h4>Alice's key</h4>
+    <p>One Ed25519 keypair, in the console wallet. Signs topology transactions at onboarding and during key/host changes; signs every ledger transaction in between (e.g. <code>AmuletTransferInstruction</code>). Loss or theft is total &mdash; see the table below.</p>
   </div>
   <div class="card">
     <h4>Host node keys</h4>
@@ -142,44 +140,48 @@ Alice holds her own namespace root key in her console wallet, but her on-ledger 
   </div>
 </div>
 
+<div class="callout">
+<strong>Future option:</strong> split Alice's key into a cold <em>namespace root</em> (signs only topology, rarely used) and a hot <em>signing key</em> (signs every transaction, rotatable). Canton supports this directly &mdash; <code>PartyToKeyMapping</code> can reference a different key from the one in <code>NamespaceDelegation</code>. Gains rotation and cold-storage protection; costs UX. Worth it for higher-assurance setups; deferred for the MVP.
+</div>
+
 <h2>The cryptographic chain (per transaction)</h2>
 
-<div class="ascii">root key  ──signs once──▶  PartyToKeyMapping { party: Alice, keys: [ext_sig_key] }
+<div class="ascii">Alice's key  ──signs at setup──▶     NamespaceDelegation + PartyToKeyMapping + PartyToParticipant
+                                       (defines Alice::<fp>, binds key to party, places party on hosts)
+
+Alice's key  ──signs each tx hash──▶ AmuletTransferInstruction (or any ledger exercise)
                                           │
                                           ▼
-ext_sig_key  ──signs each tx hash──▶  TransferInstruction request
-                                          │
-                                          ▼
-              Bitsafe / DA / PixelPlex  (verify ext_sig_key against PartyToKeyMapping,
-                                         walk NamespaceDelegation, check root fingerprint)
+              Bitsafe / DA / PixelPlex  (verify signature against PartyToKeyMapping,
+                                         walk NamespaceDelegation, check fingerprint)
                                           │
                                           ▼
               2-of-3 confirmations ──▶  Mediator ──▶  Sequencer ──▶  ledger updated</div>
 
-<h2>Onboarding &mdash; what the root key signs (once)</h2>
+<h2>Onboarding &mdash; what Alice signs (once)</h2>
 
-<p>The console wallet builds three topology transactions, Alice's root key signs them in a combined multi-hash, hosts co-sign the <code>PartyToParticipant</code>, and the bundle is submitted:</p>
+<p>The console wallet builds three topology transactions, Alice signs them in a combined multi-hash with her key, hosts co-sign the <code>PartyToParticipant</code>, and the bundle is submitted:</p>
 
 <table>
   <tr><th>Mapping</th><th>What it asserts</th><th>Signed by</th></tr>
   <tr>
     <td><code>NamespaceDelegation</code></td>
     <td>"This root key owns the namespace <code>Alice::&lt;fp&gt;</code>."</td>
-    <td>Root key (Alice)</td>
+    <td>Alice</td>
   </tr>
   <tr>
     <td><code>PartyToKeyMapping</code></td>
     <td>"This signing key represents Alice for ledger transactions."</td>
-    <td>Root key (Alice)</td>
+    <td>Alice</td>
   </tr>
   <tr>
     <td><code>PartyToParticipant</code></td>
     <td>"Bitsafe, DA, PixelPlex host Alice with <code>Confirmation</code> permission, threshold 2-of-3."</td>
-    <td>Root key (Alice) + each host's key</td>
+    <td>Alice + each host's key</td>
   </tr>
 </table>
 
-<p>On-ledger, Alice also exercises <code>ExternalPartySetupProposal_Accept</code>, producing a <code>ValidatorRight</code> and a <code>TransferPreapproval</code> (inbound receipts + automated holding-fee renewal). After this, the root key goes cold.</p>
+<p>On-ledger, Alice also exercises <code>ExternalPartySetupProposal_Accept</code>, producing a <code>ValidatorRight</code> and a <code>TransferPreapproval</code> (inbound receipts + automated holding-fee renewal). After this, Alice's key is only needed for transfers and the occasional topology change.</p>
 
 <h2>Per-transfer flow &mdash; "Alice sends 10 Amulets to Bob"</h2>
 
@@ -189,8 +191,7 @@ ext_sig_key  ──signs each tx hash──▶  TransferInstruction request
 [2] Wallet independently recomputes the hash and verifies it matches
         (trust-no-single-host hygiene)
 
-[3] Alice signs the hash locally with her external signing key
-        (root key untouched)
+[3] Alice signs the hash locally with her key
 
 [4] Wallet submits (prepared_tx + signature) to Bitsafe → broadcast to DA + PixelPlex
         Each host verifies signature against Alice's PartyToKeyMapping in topology
@@ -213,13 +214,13 @@ The <code>AmuletTransferInstruction</code> created in step 5 is the on-ledger "d
 
 <table>
   <tr><th>Operation</th><th>Requires Alice's signature?</th><th>Why</th></tr>
-  <tr><td>Outbound transfer</td><td>Yes &mdash; external signing key per tx</td><td>Value-moving; Alice's explicit intent.</td></tr>
+  <tr><td>Outbound transfer</td><td>Yes</td><td>Value-moving; Alice's explicit intent on each ledger transaction.</td></tr>
   <tr><td>Holding-fee renewal</td><td>No</td><td><code>TransferPreapproval_Renew</code> burns input amulets automatically; controller is the host, not Alice.</td></tr>
   <tr><td>Holdings merge</td><td>No</td><td><code>MergeDelegation_Merge</code> consolidates fragmented holdings; gas optimization.</td></tr>
   <tr><td>Inbound transfer (someone pays Alice)</td><td>No</td><td><code>TransferPreapproval_Send</code> lets the sender authorize.</td></tr>
-  <tr><td>Rotate signing key</td><td>Yes &mdash; root key</td><td>Topology change; publishes new <code>PartyToKeyMapping</code>.</td></tr>
-  <tr><td>Add/remove a host</td><td>Yes &mdash; root key + new host's key</td><td>Topology change to <code>PartyToParticipant</code>.</td></tr>
-  <tr><td>Migrate to entirely new hosts</td><td>Yes &mdash; root key</td><td>Alice cannot be evicted; she can always leave.</td></tr>
+  <tr><td>Rotate key (whole identity)</td><td>Yes &mdash; effectively a re-onboarding</td><td>Single-key model: the key <em>is</em> the namespace fingerprint, so rotating changes Alice's party ID. The future two-key split makes routine rotation possible without identity churn.</td></tr>
+  <tr><td>Add/remove a host</td><td>Yes &mdash; Alice + new host</td><td>Topology change to <code>PartyToParticipant</code>.</td></tr>
+  <tr><td>Migrate to entirely new hosts</td><td>Yes</td><td>Alice cannot be evicted; she can always leave.</td></tr>
 </table>
 
 <h2>Loss and rotation semantics</h2>
@@ -227,14 +228,14 @@ The <code>AmuletTransferInstruction</code> created in step 5 is the on-ledger "d
 <table>
   <tr><th>Scenario</th><th>Outcome</th><th>Recovery</th></tr>
   <tr>
-    <td>External signing key stolen</td>
-    <td><span class="pill warn">recoverable</span></td>
-    <td>Root key publishes a new <code>PartyToKeyMapping</code> replacing the compromised key. Old signatures fail verification.</td>
+    <td>Alice's key stolen</td>
+    <td><span class="pill bad">catastrophic</span></td>
+    <td>None &mdash; the key <em>is</em> the identity. Thief can re-host, rotate, drain, impersonate. Backup hygiene (seed phrase, hardware wallet) is non-negotiable.</td>
   </tr>
   <tr>
-    <td>External signing key lost</td>
-    <td><span class="pill warn">recoverable</span></td>
-    <td>Same &mdash; root mints a new mapping for a fresh key.</td>
+    <td>Alice's key lost</td>
+    <td><span class="pill bad">bricked</span></td>
+    <td>Party frozen in current topology. Inbound transfers via <code>TransferPreapproval</code> still land; outbound and topology changes do not.</td>
   </tr>
   <tr>
     <td>One host offline</td>
@@ -244,30 +245,24 @@ The <code>AmuletTransferInstruction</code> created in step 5 is the on-ledger "d
   <tr>
     <td>Two hosts offline</td>
     <td><span class="pill warn">transfers halt</span></td>
-    <td>Alice uses root key to publish a new <code>PartyToParticipant</code> with replacement hosts.</td>
-  </tr>
-  <tr>
-    <td>Root key stolen</td>
-    <td><span class="pill bad">catastrophic</span></td>
-    <td>None &mdash; the root key <em>is</em> the identity. Thief can rotate everything. Cold storage is non-negotiable.</td>
-  </tr>
-  <tr>
-    <td>Root key lost</td>
-    <td><span class="pill bad">bricked</span></td>
-    <td>Party frozen in current topology. Outbound transfers work until signing key needs rotation; then unusable.</td>
+    <td>Alice signs a new <code>PartyToParticipant</code> with replacement hosts (2-of-3 of the new set required to authorize).</td>
   </tr>
 </table>
+
+<div class="callout">
+The future two-key split would split the top two rows: signing-key compromise becomes recoverable (root republishes <code>PartyToKeyMapping</code> with a fresh key); only root-key compromise stays catastrophic. Same Canton primitives, more granular failure modes.
+</div>
 
 <h2>Properties achieved</h2>
 
 <div class="grid">
   <div class="card">
     <h4>Sovereignty</h4>
-    <p>Only Alice's root key can authorize identity, key, or hosting changes. No host or quorum can evict her or impersonate her.</p>
+    <p>Only Alice can authorize identity, key, or hosting changes. No host or quorum can evict her or impersonate her.</p>
   </div>
   <div class="card">
     <h4>Redundancy</h4>
-    <p>2-of-3 quorum tolerates one host failure with zero impact. Two failures freeze transfers but never destroy state &mdash; Alice migrates with her root key.</p>
+    <p>2-of-3 quorum tolerates one host failure with zero impact. Two failures freeze transfers but never destroy state &mdash; Alice migrates with her key.</p>
   </div>
   <div class="card">
     <h4>Operational ergonomics</h4>
@@ -278,8 +273,8 @@ The <code>AmuletTransferInstruction</code> created in step 5 is the on-ledger "d
     <p>Hosts see only the sub-transaction views they need to validate. The dApp never sees Alice's keys; the gateway routes signing requests to whatever custody Alice picked.</p>
   </div>
   <div class="card">
-    <h4>Key hygiene</h4>
-    <p>Root and signing keys are <em>separate</em> mappings. Root stays cold. Signing key is hot and rotatable. Compromise of the hot key is not a catastrophic event.</p>
+    <h4>Simple key management</h4>
+    <p>One Ed25519 keypair in the console wallet handles both topology and transactions &mdash; same model as a typical blockchain wallet. Splitting into cold root + hot signing key is supported by Canton and worth the UX cost for higher-assurance setups; deferred for the MVP.</p>
   </div>
   <div class="card">
     <h4>Trust-minimized hosting</h4>
@@ -294,17 +289,13 @@ The <code>AmuletTransferInstruction</code> created in step 5 is the on-ledger "d
 <p>The client side &mdash; <a href="https://github.com/hyperledger-labs/splice-wallet-kernel">splice-wallet-kernel</a> &mdash; implements the corresponding TypeScript Wallet SDK, dApp SDK, and Wallet Gateway. It exposes <code>PartyMode.EXTERNAL</code> with pluggable signing drivers (internal, Fireblocks, Blockdaemon, participant). The multi-hosting workflow is documented and demonstrated in <code>examples/scripts/03-parties.ts</code>.</p>
 
 <div class="callout warn">
-<strong>Two gaps relative to the design above:</strong>
-<ul>
-  <li>The browser-extension Wallet Gateway (<code>wallet-gateway-extension</code>) &mdash; the cleanest realization of "console wallet, keys never leave the browser" &mdash; is currently marked <code>NOT IMPLEMENTED YET</code>. The available <code>wallet-gateway-remote</code> is a server Alice must trust.</li>
-  <li>The SDK's <code>createKeyPair</code> generates one Ed25519 keypair and reuses it for <em>both</em> <code>NamespaceDelegation</code> and <code>PartyToKeyMapping</code>. The primitives support splitting them, but ergonomic helpers for "cold root + hot rotatable signer" are still DIY.</li>
-</ul>
+<strong>Gap relative to the design above:</strong> the browser-extension Wallet Gateway (<code>wallet-gateway-extension</code>) &mdash; the cleanest realization of "console wallet, keys never leave the browser" &mdash; is currently marked <code>NOT IMPLEMENTED YET</code>. The available <code>wallet-gateway-remote</code> is a server Alice must trust.
 </div>
 
 <h2>TL;DR</h2>
 
 <div class="card">
-Canton's three-mapping topology lets you independently choose <em>who owns the identity</em>, <em>which key signs each transaction</em>, and <em>which nodes host the data</em>. Decentralized Alice picks: Alice owns identity (cold root key), Alice signs every tx (hot external key), three independent hosts run the infrastructure with 2-of-3 confirmation. The result is a wallet that is <strong>self-sovereign, redundant, hot-rotatable, and operationally lazy</strong> &mdash; without needing a custodian or a multisig at any layer.
+Canton's three-mapping topology lets you independently choose <em>who owns the identity</em>, <em>which key signs each transaction</em>, and <em>which nodes host the data</em>. Decentralized Alice picks: one Ed25519 key in the console wallet handles both identity and transactions, three independent hosts run the infrastructure with 2-of-3 confirmation. The result is a wallet that is <strong>self-sovereign, redundant, and operationally lazy</strong> &mdash; with the same UX as a normal blockchain wallet, no custodian, no multisig. Splitting the key into cold root + hot signing key is supported but deferred.
 </div>
 
 <div class="nav">
